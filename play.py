@@ -59,6 +59,8 @@ class Event:
         self.velocity = velocity
     def __lt__(self, other):
         return self.start_time < other.start_time if self.start_time != other.start_time else self.event_type < other.event_type
+    def __str__(self) -> str:
+        return f"{self.event_type}@{self.start_time:.3f}: {self.key_id}@{self.velocity}"
 
 BPM=60
 
