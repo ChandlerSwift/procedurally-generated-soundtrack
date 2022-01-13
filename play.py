@@ -99,7 +99,7 @@ def play(*parts):
                 fs.noteoff(0, n.key_id)
         if DEBUG:
             print(f"time.sleep({(q[0].start_time - current_time)})")
-        time.sleep((q[0].start_time - current_time))
+        time.sleep((q[0].start_time - current_time) * 60/BPM)
         current_time = q[0].start_time
 
 # available from https://sites.google.com/site/soundfonts4u/
