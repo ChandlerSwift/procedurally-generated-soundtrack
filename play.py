@@ -29,9 +29,9 @@ def tenor():
         yield [(53, VELOCITY), (57, VELOCITY), (60, VELOCITY)], 0.25
         yield [], 0.25
 
-def melody():
+def melody(seed: int=0):
     VELOCITY=80
-    random.seed(0) # consistent randomness for debugging
+    random.seed(seed) # consistent randomness for debugging
     # a premade bit of melody
     # while True:
     #     for note in "71 72 71 72 71 67 64 67 69 65 62 69 67 64 57 59".split():
