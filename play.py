@@ -63,6 +63,7 @@ class Event:
         return f"{self.event_type}@{self.start_time:.3f}: {self.key_id}@{self.velocity}"
 
 BPM=60
+DEBUG=False
 
 # TODO: I think fluidsynth.Sequencer would make a lot of this easier?
 # TODO: synchronize with real time; could be free with fluidsynth.Sequencer
@@ -89,9 +90,15 @@ def play(*parts):
         while q[0].start_time == current_time:
             n = heapq.heappop(q)
             if n.event_type == "noteon":
+                if DEBUG:
+                    print(f"fs.noteon(0, {n.key_id}, {n.velocity})")
                 fs.noteon(0, n.key_id, n.velocity)
             elif n.event_type == "noteoff":
+                if DEBUG:
+                    print(f"fs.noteoff(0, {n.key_id})")
                 fs.noteoff(0, n.key_id)
+        if DEBUG:
+            print(f"time.sleep({(q[0].start_time - current_time)})")
         time.sleep((q[0].start_time - current_time))
         current_time = q[0].start_time
 
