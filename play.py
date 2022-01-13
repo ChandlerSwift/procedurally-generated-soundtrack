@@ -1,6 +1,11 @@
 import time
+from typing import List
 import fluidsynth
 import random
+import functools
+import heapq
+
+# TODO: typing
 
 fs = fluidsynth.Synth()
 fs.start()
@@ -41,29 +46,60 @@ def melody():
             last_note_index = last_note_index + offset
             yield [(notes[last_note_index], VELOCITY)], 0.25
 
+@functools.total_ordering
+class Event:
+    event_type: str
+    start_time: float
+    key_id: int
+    velocity: int
+    def __init__(self, event_type, start_time, key_id, velocity):
+        self.event_type = event_type
+        self.start_time = start_time
+        self.key_id = key_id
+        self.velocity = velocity
+    def __lt__(self, other):
+        return self.start_time < other.start_time
+
 BPM=60
 
-def play(notes_stream):
+# TODO: I think fluidsynth.Sequencer would make a lot of this easier?
+# TODO: synchronize with real time; could be free with fluidsynth.Sequencer
+def play(*parts):
+    q: List(Event) = [] # empty heap
+    current_time = 0
+    searched_until = 0
+    parts = [[part, 0] for part in parts] # add a time counter to each part
     while True:
-        notes = next(notes_stream)
-        for note in notes[0]:
-            fs.noteon(0, note[0], note[1])
-        time.sleep(notes[1] * 60/BPM)
-        for note in notes[0]:
-            fs.noteoff(0, note[0])
+        # replenish queue if needed
+        if searched_until < current_time + 10: # 10 is an arbitrarily chosen search increment
+            for part in parts:
+                while part[1] < searched_until + 10: # 10 from above
+                    new_notes, delay_after = next(part[0]) # get the next note
+                    for note in new_notes:
+                        heapq.heappush(q, Event("noteon", part[1], note[0], note[1]))
+                        heapq.heappush(q, Event("noteoff", part[1] + delay_after, note[0], note[1]))
+                    part[1] += delay_after
+            searched_until += 10
+        # TODO: remove (debug)
+        if q[0].start_time < current_time:
+            raise RuntimeError("note happened in past, should not happen")
+        # play notes we're ready for
+        while q[0].start_time == current_time:
+            n = heapq.heappop(q)
+            if n.event_type == "noteon":
+                fs.noteon(0, n.key_id, n.velocity)
+            elif n.event_type == "noteoff":
+                fs.noteoff(0, n.key_id)
+        time.sleep((q[0].start_time - current_time))
+        current_time = q[0].start_time
 
 # available from https://sites.google.com/site/soundfonts4u/
 sfid = fs.sfload("soundfonts/Essential Keys-sforzando-v9.6.sf2")
 fs.program_select(0, sfid, 0, 8)
 
-import threading # hacks, TODO: as generator?
-bass_thread = threading.Thread(target=play, args=(bassline(),))
-bass_thread.start()
-tenor_thread = threading.Thread(target=play, args=(tenor(),))
-tenor_thread.start()
-melody_thread = threading.Thread(target=play, args=(melody(),))
-melody_thread.start()
-
-bass_thread.join()
+try:
+    play(bassline(), tenor(), melody())
+except KeyboardInterrupt:
+    pass
 
 fs.delete()
