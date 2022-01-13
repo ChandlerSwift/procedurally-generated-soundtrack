@@ -8,7 +8,6 @@ import heapq
 # TODO: typing
 
 fs = fluidsynth.Synth()
-fs.start()
 
 def bassline():
     VELOCITY=40
@@ -99,16 +98,28 @@ def play(*parts):
                 fs.noteoff(0, n.key_id)
         if DEBUG:
             print(f"time.sleep({(q[0].start_time - current_time)})")
-        time.sleep((q[0].start_time - current_time))
+        yield fs.get_samples(int(44100 * (q[0].start_time - current_time)))
         current_time = q[0].start_time
+        if current_time > 32: # wrap it up
+            yield fs.get_samples(44100 * 2)
+            for e in q:
+                if e.event_type == "noteoff":
+                    fs.noteoff(0, e.key_id)
+            break
+
 
 # available from https://sites.google.com/site/soundfonts4u/
 sfid = fs.sfload("soundfonts/Essential Keys-sforzando-v9.6.sf2")
 fs.program_select(0, sfid, 0, 8)
 
-try:
-    play(bassline(), tenor(), melody())
-except KeyboardInterrupt:
-    pass
+import wave
+import numpy
+w: wave.Wave_write = wave.open("out.wav", "wb")
+w.setnchannels(2)
+w.setsampwidth(2)
+w.setframerate(44100)
+
+for data in play(bassline(), tenor(), melody()):
+    w.writeframes(bytes(data.astype(numpy.int16).tostring()))
 
 fs.delete()
