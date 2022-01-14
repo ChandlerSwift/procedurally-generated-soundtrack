@@ -3,11 +3,28 @@ from typing import List
 import fluidsynth
 import functools
 import heapq
+import os
 
 # TODO: typing
 
+WAV_EXPORT=False
+if os.environ.get("WAV_EXPORT", "") != "":
+    WAV_BEATS=int(os.environ.get("WAV_BEATS", "32"))
+    WAV_EXPORT=True
+
+    import wave
+    import numpy
+    import sys
+    import io
+    buf = io.BytesIO()
+    w: wave.Wave_write = wave.open(buf, "wb")
+    w.setnchannels(2)
+    w.setsampwidth(2)
+    w.setframerate(44100)
+
 fs = fluidsynth.Synth()
-fs.start()
+if not WAV_EXPORT:
+    fs.start()
 
 @functools.total_ordering
 class Event:
@@ -61,8 +78,19 @@ def play(*parts, BPM: int):
                 fs.noteoff(0, n.key_id)
         if DEBUG:
             print(f"time.sleep({(q[0].start_time - current_time)})")
-        time.sleep((q[0].start_time - current_time) * 60/BPM)
+        if WAV_EXPORT:
+            samples = fs.get_samples(int(44100 * ((q[0].start_time - current_time) * 60/BPM)))
+            w.writeframes(samples.astype(numpy.int16).tobytes())
+        else:
+            time.sleep((q[0].start_time - current_time) * 60/BPM)
         current_time = q[0].start_time
+        if WAV_EXPORT and current_time > WAV_BEATS: # wrap it up
+            samples = fs.get_samples(44100 * 2)
+            w.writeframes(samples.astype(numpy.int16).tobytes())
+            for e in q:
+                if e.event_type == "noteoff":
+                    fs.noteoff(0, e.key_id)
+            break
 
 # available from https://sites.google.com/site/soundfonts4u/
 sfid = fs.sfload("soundfonts/Essential Keys-sforzando-v9.6.sf2")
@@ -83,3 +111,6 @@ except KeyboardInterrupt:
     pass
 
 fs.delete()
+
+if WAV_EXPORT:
+    sys.stdout.buffer.write(buf.getvalue())
