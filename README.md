@@ -10,14 +10,13 @@ python play.py
 ```
 
 ### Sample output
-Generated from d51d79e241b12ab0bc5b7a76a4b9b51dab819769.
 
-<audio controls>
-  <source src="https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/sample.flac" type="audio/flac">
-  <source src="https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/sample.ogg" type="audio/ogg">
-  <source src="https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/sample.mp3" type="audio/mpeg">
-  <a href="https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/sample.mp3">Download audio</a>
-</audio>
+Style | FLAC | MP3
+--|--|--|
+All Blues | [all_blues.flac](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/all_blues.flac) | [all_blues.mp3](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/all_blues.mp3)
+Jazz Waltz | [jazz_waltz.flac](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/jazz_waltz.flac) | [jazz_waltz.mp3](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/jazz_waltz.mp3)
+Peaceful (Double time melody) | [peaceful_double_time_melody.flac](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/peaceful_double_time_melody.flac) | [peaceful_double_time_melody.mp3](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/peaceful_double_time_melody.mp3)
+Peaceful | [peaceful.flac](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/peaceful.flac) | [peaceful.mp3](https://github.com/ChandlerSwift/procedurally-generated-soundtrack/raw/main/samples/peaceful.mp3)
 
 ### `parse_keys.py`
 
@@ -83,4 +82,22 @@ def tenor():
         yield [(65, VELOCITY), (59, VELOCITY)], 2
         yield [(63, VELOCITY), (57, VELOCITY)], 2
         yield [(58, VELOCITY), (64, VELOCITY)], 4
+```
+
+### Generating samples
+
+```sh
+rm samples/*
+
+WAV_EXPORT=true WAV_BEATS=78 python play.py all_blues 2>/dev/null | ffmpeg -i - samples/all_blues.flac 2>/dev/null
+WAV_EXPORT=true WAV_BEATS=78 python play.py all_blues 2>/dev/null | ffmpeg -i - samples/all_blues.mp3 2>/dev/null
+
+WAV_EXPORT=true WAV_BEATS=60 python play.py jazz_waltz 2>/dev/null | ffmpeg -i - samples/jazz_waltz.flac 2>/dev/null
+WAV_EXPORT=true WAV_BEATS=60 python play.py jazz_waltz 2>/dev/null | ffmpeg -i - samples/jazz_waltz.mp3 2>/dev/null
+
+WAV_EXPORT=true WAV_BEATS=32 python play.py peaceful_double_time_melody 2>/dev/null | ffmpeg -i - samples/peaceful_double_time_melody.flac 2>/dev/null
+WAV_EXPORT=true WAV_BEATS=32 python play.py peaceful_double_time_melody 2>/dev/null | ffmpeg -i - samples/peaceful_double_time_melody.mp3 2>/dev/null
+
+WAV_EXPORT=true WAV_BEATS=32 python play.py peaceful 2>/dev/null | ffmpeg -i - samples/peaceful.flac 2>/dev/null
+WAV_EXPORT=true WAV_BEATS=32 python play.py peaceful 2>/dev/null | ffmpeg -i - samples/peaceful.mp3 2>/dev/null
 ```
