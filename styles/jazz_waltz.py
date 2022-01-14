@@ -36,4 +36,4 @@ def melody(seed: int=0):
 
 parts=[bassline(), tenor(), melody()]
 
-BPM=180
+BPM=144
