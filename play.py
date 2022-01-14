@@ -68,7 +68,14 @@ def play(*parts, BPM: int):
 sfid = fs.sfload("soundfonts/Essential Keys-sforzando-v9.6.sf2")
 fs.program_select(0, sfid, 0, 8)
 
-import styles.peaceful as style
+import sys
+if len(sys.argv) > 1 and sys.argv[1] != "":
+    style = sys.argv[1]
+else:
+    style = "peaceful"
+
+import importlib
+style = importlib.import_module(f"styles.{style}")
 
 try:
     play(*style.parts, BPM=style.BPM)
